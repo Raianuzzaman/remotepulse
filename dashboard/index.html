@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RemotePulse — Cloud Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#060810;--s1:#0D0F1C;--s2:#141728;--bd:#1C1F35;--bd2:#272B48;
+  --tx:#E4E8FF;--mt:#4E5480;--ac:#4D7CFF;--ac2:#B06EFF;--gr:#00E5A0;
+  --or:#FF7B3A;--pk:#FF4D8B;--yw:#FFD460;--re:#FF4D4D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+
+/* ── TOPBAR ── */
+.top{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--bd);backdrop-filter:blur(12px)}
+.top-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.logo-name{font-family:'Fira Code',monospace;font-size:15px;font-weight:500;color:var(--tx);letter-spacing:.02em}
+.logo-tag{font-size:9px;color:var(--mt);letter-spacing:.1em;text-transform:uppercase;margin-top:-3px}
+.top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{padding:5px 12px;border-radius:20px;font-size:11px;font-family:'Fira Code',monospace;border:1px solid;white-space:nowrap}
+.pill-blue{border-color:var(--ac)44;color:#7BA3FF;background:var(--ac)0D}
+.pill-green{border-color:var(--gr)44;color:var(--gr);background:var(--gr)0D}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--gr);display:inline-block;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── MAIN ── */
+.wrap{max-width:1200px;margin:0 auto;padding:24px}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:26px;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--mt);padding:12px 20px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--tx)}
+.tab.on{color:var(--tx);border-bottom-color:var(--ac)}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:.07}
+.stat-n{font-family:'Fira Code',monospace;font-size:30px;font-weight:500;line-height:1;margin-bottom:5px}
+.stat-l{font-size:11px;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+
+/* ── CONFIG BOX ── */
+.config-box{background:var(--s1);border:1px solid var(--bd2);border-radius:12px;padding:16px 20px;margin-bottom:22px;font-size:13px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.config-box input{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--bd2);color:var(--tx);padding:8px 13px;border-radius:8px;font-family:'Fira Code',monospace;font-size:12px;outline:none;transition:border-color .2s}
+.config-box input:focus{border-color:var(--ac)}
+.config-box input::placeholder{color:var(--mt)}
+.config-label{font-size:11px;color:var(--mt);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
+.btn-connect{background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;color:#fff;padding:9px 20px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.btn-connect:hover{opacity:.85}
+
+/* ── CONTROLS ── */
+.controls{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:180px;background:var(--s1);border:1px solid var(--bd2);color:var(--tx);padding:10px 16px;border-radius:10px;font-family:inherit;font-size:13px;outline:none;transition:border-color .2s}
+.search:focus{border-color:var(--ac)}
+.search::placeholder{color:var(--mt)}
+.fgroup{display:flex;gap:6px;flex-wrap:wrap}
+.fb{background:transparent;border:1px solid var(--bd);color:var(--mt);padding:8px 14px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.fb:hover{border-color:var(--bd2);color:var(--tx)}
+.fb.on{background:var(--ac)12;border-color:var(--ac)66;color:#7BA3FF}
+.sel{background:var(--s1);border:1px solid var(--bd2);color:var(--tx);padding:9px 13px;border-radius:9px;font-family:inherit;font-size:12px;outline:none;cursor:pointer}
+
+/* ── SECTION HEAD ── */
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sh-t{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mt)}
+.sh-l{flex:1;height:1px;background:var(--bd)}
+.sh-c{font-family:'Fira Code',monospace;font-size:11px;color:var(--ac)}
+
+/* ── JOB GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:11px}
+
+/* ── JOB CARD ── */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:18px;position:relative;overflow:hidden;transition:all .2s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .25s}
+.card:hover{border-color:var(--bd2);transform:translateY(-2px);box-shadow:0 8px 32px #00000055}
+.card:hover::before{opacity:1}
+.site-Indeed .card::before,.site-Indeed::before{background:linear-gradient(90deg,#2557FF,#56CFE1)}
+.site-Linkedin .card::before,.site-Linkedin::before{background:linear-gradient(90deg,#0A66C2,#00CFFF)}
+.site-Zip_recruiter .card::before,.site-Zip_recruiter::before{background:linear-gradient(90deg,var(--gr),var(--ac))}
+.site-Glassdoor .card::before,.site-Glassdoor::before{background:linear-gradient(90deg,#0CAA41,#56CFE1)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.card-role{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:3px}
+.card-co{font-size:12px;color:var(--ac);font-weight:500}
+.card-meta{text-align:right;flex-shrink:0}
+.card-time{font-size:10px;color:var(--mt);margin-bottom:5px}
+.site-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10px;font-family:'Fira Code',monospace;border:1px solid var(--bd2);color:var(--mt)}
+.card-loc{font-size:11px;color:var(--mt);margin-bottom:9px;display:flex;align-items:center;gap:5px}
+.card-desc{font-size:11.5px;color:#6870A0;line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-foot{display:flex;justify-content:space-between;align-items:center}
+.salary{font-family:'Fira Code',monospace;font-size:12px;color:var(--gr);font-weight:500}
+.actions{display:flex;gap:6px}
+.btn-save{background:transparent;border:1px solid var(--bd2);color:var(--mt);padding:6px 10px;border-radius:7px;font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s}
+.btn-save:hover,.btn-save.on{border-color:var(--yw);color:var(--yw)}
+.btn-apply{background:var(--ac)12;border:1px solid var(--ac)44;color:#7BA3FF;padding:6px 15px;border-radius:7px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-apply:hover{background:var(--ac)25}
+.btn-apply.done{background:var(--gr)12;border-color:var(--gr)44;color:var(--gr)}
+.card.dim{opacity:.5}
+
+/* ── APPLIED TABLE ── */
+.app-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:var(--s1);border:1px solid var(--bd);border-radius:11px;margin-bottom:8px;flex-wrap:wrap}
+.app-title{font-size:13px;font-weight:600}
+.app-co{font-size:11px;color:var(--mt);margin-top:3px}
+.app-date{font-family:'Fira Code',monospace;font-size:11px;color:var(--gr);white-space:nowrap}
+.status-sel{background:var(--s2);border:1px solid var(--bd2);color:var(--tx);padding:5px 10px;border-radius:7px;font-family:inherit;font-size:11px;cursor:pointer;outline:none}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:60px 20px;color:var(--mt);grid-column:1/-1}
+.empty-icon{font-size:42px;margin-bottom:14px;opacity:.7}
+
+/* ── LOADING ── */
+.skel{background:linear-gradient(90deg,var(--s1) 25%,var(--s2) 50%,var(--s1) 75%);background-size:200% 100%;animation:sh 1.4s infinite;border-radius:8px}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* ── ALERT ── */
+.alert{padding:14px 18px;border-radius:11px;font-size:13px;line-height:1.7;margin-bottom:18px;border:1px solid}
+.alert-blue{background:var(--ac)0D;border-color:var(--ac)33;color:#7BA3FF}
+.alert-green{background:var(--gr)0D;border-color:var(--gr)33;color:#5FFFC0}
+.alert-orange{background:var(--or)0D;border-color:var(--or)33;color:#FFAA7A}
+code{background:var(--s2);border:1px solid var(--bd2);padding:1px 7px;border-radius:4px;font-family:'Fira Code',monospace;font-size:11px;color:#A5B4FC}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-inner">
+    <a class="logo" href="#">
+      <div class="logo-mark">⚡</div>
+      <div>
+        <div class="logo-name">REMOTEPULSE</div>
+        <div class="logo-tag">Cloud Dashboard · Supabase</div>
+      </div>
+    </a>
+    <div class="top-right">
+      <span class="pulse"></span>
+      <span id="syncStatus" style="font-size:11px;color:var(--mt)">Not connected</span>
+      <span class="pill pill-blue" id="totalPill">0 jobs</span>
+      <span class="pill pill-green" id="appliedPill">0 applied</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('jobs',this)">⚡ Job Board</button>
+    <button class="tab" onclick="showTab('applied',this)">✅ Applications</button>
+    <button class="tab" onclick="showTab('saved',this)">★ Saved</button>
+    <button class="tab" onclick="showTab('connect',this)">🔌 Connect Supabase</button>
+  </div>
+
+  <!-- ══ JOBS TAB ══ -->
+  <div id="tab-jobs">
+    <div class="alert alert-blue" id="mainAlert">
+      🔌 <strong>Connect your Supabase database</strong> to load live jobs. Go to the <strong>"Connect Supabase"</strong> tab and paste your project URL and anon key.
+    </div>
+    <div class="stats">
+      <div class="stat" style="--c:var(--ac)"><div class="stat::after" style="background:var(--ac)"></div><div class="stat-n" id="s-total" style="color:var(--ac)">0</div><div class="stat-l">Total Jobs</div></div>
+      <div class="stat"><div class="stat-n" id="s-today" style="color:var(--ac2)">0</div><div class="stat-l">Added Today</div></div>
+      <div class="stat"><div class="stat-n" id="s-saved" style="color:var(--yw)">0</div><div class="stat-l">Saved</div></div>
+      <div class="stat"><div class="stat-n" id="s-applied" style="color:var(--gr)">0</div><div class="stat-l">Applied</div></div>
+    </div>
+    <div class="controls">
+      <input class="search" id="searchInput" placeholder="🔍  Search role, company, skill, location..." oninput="renderJobs()"/>
+      <div class="fgroup">
+        <button class="fb on" onclick="setFilter('all',this)">All</button>
+        <button class="fb" onclick="setFilter('Indeed',this)">Indeed</button>
+        <button class="fb" onclick="setFilter('Linkedin',this)">LinkedIn</button>
+        <button class="fb" onclick="setFilter('Zip_recruiter',this)">ZipRecruiter</button>
+        <button class="fb" onclick="setFilter('Glassdoor',this)">Glassdoor</button>
+      </div>
+      <select class="sel" id="sortSel" onchange="renderJobs()">
+        <option value="newest">Newest first</option>
+        <option value="salary">Highest salary</option>
+        <option value="company">Company A–Z</option>
+      </select>
+      <button class="btn-connect" onclick="loadJobs()" style="padding:9px 16px;font-size:12px">↻ Refresh</button>
+    </div>
+    <div class="sh"><div class="sh-t">Remote Jobs</div><div class="sh-l"></div><div class="sh-c" id="jobCount">0 results</div></div>
+    <div class="grid" id="jobGrid">
+      <div class="empty"><div class="empty-icon">🌐</div><p>Connect Supabase to load your jobs</p></div>
+    </div>
+  </div>
+
+  <!-- ══ APPLIED TAB ══ -->
+  <div id="tab-applied" style="display:none">
+    <div class="sh"><div class="sh-t">Your Applications</div><div class="sh-l"></div><div class="sh-c" id="appCount">0</div></div>
+    <div id="appList"><div class="empty"><div class="empty-icon">📋</div><p>No applications tracked yet. Click Apply on any job.</p></div></div>
+  </div>
+
+  <!-- ══ SAVED TAB ══ -->
+  <div id="tab-saved" style="display:none">
+    <div class="sh"><div class="sh-t">Saved Jobs</div><div class="sh-l"></div><div class="sh-c" id="savedCount">0</div></div>
+    <div class="grid" id="savedGrid">
+      <div class="empty"><div class="empty-icon">★</div><p>No saved jobs yet. Click ☆ on any job card.</p></div>
+    </div>
+  </div>
+
+  <!-- ══ CONNECT TAB ══ -->
+  <div id="tab-connect" style="display:none">
+    <div class="alert alert-orange" style="margin-bottom:20px">
+      ⚠️ <strong>This dashboard needs your Supabase credentials to load jobs.</strong><br/>
+      Your credentials are stored only in your browser (localStorage). Never shared anywhere.
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:24px;max-width:580px">
+      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Connect to Supabase</div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Supabase Project URL</div>
+        <input id="inp-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co" style="width:100%;background:var(--s2);border:1px solid var(--bd2);color:var(--tx);padding:10px 14px;border-radius:9px;font-family:'Fira Code',monospace;font-size:12px;outline:none"/>
+        <div style="font-size:11px;color:var(--mt);margin-top:5px">Found in: Supabase Dashboard → Project Settings → API → Project URL</div>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Anon / Public Key</div>
+        <input id="inp-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width:100%;background:var(--s2);border:1px solid var(--bd2);color:var(--tx);padding:10px 14px;border-radius:9px;font-family:'Fira Code',monospace;font-size:12px;outline:none"/>
+        <div style="font-size:11px;color:var(--mt);margin-top:5px">Found in: Supabase Dashboard → Project Settings → API → anon public</div>
+      </div>
+      <button class="btn-connect" onclick="saveConfig()" style="width:100%;padding:12px">Save & Connect</button>
+      <div id="connectMsg" style="margin-top:12px;font-size:12px;color:var(--mt);text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+let jobs = [];
+let savedIds  = new Set(JSON.parse(localStorage.getItem('rp_saved')  || '[]'));
+let appliedMap = new Map(JSON.parse(localStorage.getItem('rp_applied')|| '[]').map(a=>[a.url,a]));
+let activeFilter = 'all';
+
+// ── CONFIG ────────────────────────────────────────────────────
+function getConfig() {
+  return {
+    url: localStorage.getItem('sb_url') || '',
+    key: localStorage.getItem('sb_key') || '',
+  };
+}
+
+function saveConfig() {
+  const url = document.getElementById('inp-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('inp-key').value.trim();
+  if (!url || !key) {
+    document.getElementById('connectMsg').textContent = '⚠ Please fill in both fields';
+    return;
+  }
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+  document.getElementById('connectMsg').innerHTML = '✅ Saved! Connecting...';
+  setTimeout(() => { showTab('jobs', document.querySelector('.tab')); loadJobs(); }, 500);
+}
+
+// ── SUPABASE FETCH ────────────────────────────────────────────
+async function sbFetch(endpoint) {
+  const { url, key } = getConfig();
+  if (!url || !key) return null;
+  const r = await fetch(`${url}/rest/v1/${endpoint}`, {
+    headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
+  });
+  if (!r.ok) throw new Error(`${r.status}`);
+  return r.json();
+}
+
+async function sbPost(endpoint, data) {
+  const { url, key } = getConfig();
+  if (!url || !key) return;
+  await fetch(`${url}/rest/v1/${endpoint}`, {
+    method: 'POST', headers: {
+      'apikey': key, 'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+    }, body: JSON.stringify(data)
+  });
+}
+
+async function sbDelete(endpoint) {
+  const { url, key } = getConfig();
+  if (!url || !key) return;
+  await fetch(`${url}/rest/v1/${endpoint}`, {
+    method: 'DELETE', headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+  });
+}
+
+// ── LOAD ──────────────────────────────────────────────────────
+async function loadJobs() {
+  const { url, key } = getConfig();
+  if (!url || !key) return;
+
+  document.getElementById('syncStatus').textContent = 'Loading...';
+  document.getElementById('jobGrid').innerHTML = `
+    <div class="card"><div class="skel" style="height:14px;margin-bottom:10px;width:70%"></div><div class="skel" style="height:10px;width:45%"></div></div>
+    <div class="card"><div class="skel" style="height:14px;margin-bottom:10px;width:80%"></div><div class="skel" style="height:10px;width:55%"></div></div>
+    <div class="card"><div class="skel" style="height:14px;margin-bottom:10px;width:60%"></div><div class="skel" style="height:10px;width:40%"></div></div>
+  `;
+
+  try {
+    const data = await sbFetch('jobs?select=*&order=fetched_at.desc&limit=200');
+    jobs = data || [];
+    document.getElementById('syncStatus').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    document.getElementById('mainAlert').style.display = 'none';
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = jobs.filter(j => (j.date_posted||'').startsWith(today) || (j.fetched_at||'').startsWith(today)).length;
+    document.getElementById('s-today').textContent = todayCount;
+    document.getElementById('s-total').textContent = jobs.length;
+    document.getElementById('totalPill').textContent = jobs.length + ' jobs';
+
+    renderJobs();
+    renderApplied();
+    renderSaved();
+  } catch(e) {
+    document.getElementById('syncStatus').textContent = 'Connection failed';
+    document.getElementById('mainAlert').className = 'alert alert-orange';
+    document.getElementById('mainAlert').innerHTML = `⚠️ <strong>Could not connect to Supabase.</strong> Check your credentials in the Connect tab. Error: ${e.message}`;
+    document.getElementById('jobGrid').innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔌</div><p>Could not load jobs. Check your Supabase config.</p></div>`;
+  }
+}
+
+// ── RENDER JOBS ───────────────────────────────────────────────
+function renderJobs() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  const sort = document.getElementById('sortSel').value;
+
+  let list = jobs.filter(j => {
+    const ms = activeFilter === 'all' || j.site === activeFilter;
+    const mq = !q || (j.title||'').toLowerCase().includes(q) ||
+      (j.company||'').toLowerCase().includes(q) ||
+      (j.description||'').toLowerCase().includes(q) ||
+      (j.location||'').toLowerCase().includes(q);
+    return ms && mq;
+  });
+
+  if (sort === 'salary') list.sort((a,b) => parseSal(b.salary) - parseSal(a.salary));
+  else if (sort === 'company') list.sort((a,b) => (a.company||'').localeCompare(b.company||''));
+  else list.sort((a,b) => new Date(b.fetched_at||0) - new Date(a.fetched_at||0));
+
+  document.getElementById('jobCount').textContent = list.length + ' results';
+  document.getElementById('s-total').textContent = list.length;
+
+  if (!list.length) {
+    document.getElementById('jobGrid').innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><p>No jobs match your filter</p></div>`;
+    return;
+  }
+
+  document.getElementById('jobGrid').innerHTML = list.map(j => cardHTML(j)).join('');
+}
+
+function cardHTML(j, mini=false) {
+  const isSaved = savedIds.has(j.url);
+  const isApplied = appliedMap.has(j.url);
+  return `
+  <div class="card site-${j.site} ${isApplied?'dim':''}" id="card-${btoa(j.url||j.id).replace(/=/g,'')}">
+    <div class="card-top">
+      <div>
+        <div class="card-role">${j.title||'Unknown Role'}</div>
+        <div class="card-co">${j.company||'Unknown'}</div>
+      </div>
+      <div class="card-meta">
+        <div class="card-time">${fmtDate(j.date_posted||j.fetched_at)}</div>
+        <span class="site-chip">${j.site||''}</span>
+      </div>
+    </div>
+    <div class="card-loc">📍 ${j.location||'Worldwide'} · ${j.job_type||'Full-time'}</div>
+    ${j.description?`<div class="card-desc">${j.description.substring(0,160)}...</div>`:''}
+    <div class="card-foot">
+      <div class="salary">${j.salary||'🌐 Remote'}</div>
+      <div class="actions">
+        <button class="btn-save ${isSaved?'on':''}" onclick="toggleSave('${esc(j.url)}')" title="${isSaved?'Unsave':'Save'}">${isSaved?'★':'☆'}</button>
+        <a class="btn-apply ${isApplied?'done':''}" href="${j.url||'#'}" target="_blank"
+           onclick="markApplied('${esc(j.url)}','${esc(j.title)}','${esc(j.company)}')">
+          ${isApplied?'✓ Applied':'Apply →'}
+        </a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSaved() {
+  const list = jobs.filter(j => savedIds.has(j.url));
+  document.getElementById('savedCount').textContent = list.length;
+  document.getElementById('s-saved').textContent = list.length;
+  document.getElementById('savedGrid').innerHTML = list.length
+    ? list.map(j => cardHTML(j)).join('')
+    : `<div class="empty"><div class="empty-icon">★</div><p>No saved jobs yet. Click ☆ on any job card.</p></div>`;
+}
+
+function renderApplied() {
+  const arr = [...appliedMap.values()].sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt));
+  document.getElementById('appCount').textContent = arr.length;
+  document.getElementById('s-applied').textContent = arr.length;
+  document.getElementById('appliedPill').textContent = arr.length + ' applied';
+  if (!arr.length) {
+    document.getElementById('appList').innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>No applications yet.</p></div>`;
+    return;
+  }
+  document.getElementById('appList').innerHTML = arr.map(a => `
+    <div class="app-row">
+      <div>
+        <div class="app-title">${a.title||''}</div>
+        <div class="app-co">${a.company||''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <select class="status-sel" onchange="updateStatus('${esc(a.url)}',this.value)">
+          ${['Applied','Interview','Offer','Rejected'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <div class="app-date">${new Date(a.appliedAt).toLocaleDateString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────
+function toggleSave(url) {
+  if (savedIds.has(url)) savedIds.delete(url);
+  else savedIds.add(url);
+  localStorage.setItem('rp_saved', JSON.stringify([...savedIds]));
+  renderJobs(); renderSaved();
+}
+
+function markApplied(url, title, company) {
+  if (!appliedMap.has(url)) {
+    const entry = { url, title, company, status: 'Applied', appliedAt: new Date().toISOString() };
+    appliedMap.set(url, entry);
+    localStorage.setItem('rp_applied', JSON.stringify([...appliedMap.values()]));
+    sbPost('applied_jobs', { job_url: url, job_title: title, company, applied_at: entry.appliedAt, status: 'Applied' });
+    renderApplied(); renderJobs();
+  }
+}
+
+function updateStatus(url, status) {
+  if (appliedMap.has(url)) {
+    appliedMap.get(url).status = status;
+    localStorage.setItem('rp_applied', JSON.stringify([...appliedMap.values()]));
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function parseSal(s) { if (!s) return 0; const m = s.replace(/,/g,'').match(/\d+/); return m ? parseInt(m[0]) : 0; }
+function esc(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d); const diff = Math.floor((Date.now()-dt)/86400000);
+  if (diff===0) return 'Today'; if (diff===1) return 'Yesterday'; return diff+'d ago';
+}
+function setFilter(v, el) {
+  activeFilter = v;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+  el.classList.add('on'); renderJobs();
+}
+function showTab(id, el) {
+  ['jobs','applied','saved','connect'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+const cfg = getConfig();
+if (cfg.url && cfg.key) {
+  document.getElementById('inp-url').value = cfg.url;
+  document.getElementById('inp-key').value = cfg.key;
+  loadJobs();
+}
+setInterval(loadJobs, 5 * 60 * 1000); // auto refresh every 5 min
+</script>
+</body>
+</html>
